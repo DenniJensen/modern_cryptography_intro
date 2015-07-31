@@ -1,0 +1,70 @@
+\subsection{Datenaustausch}
+\subsubsection{Daten empfangen}
+Um Daten im Freenet zu empfangen, wählt oder berechnet der Nutzer einen Hash.
+Dieser Hash wird dann als Request-Nachricht über eine Kette von Requests und
+mit einer gegebenen hops-to-live-Zahl versendet. Als Start dient der eigene Knoten.
+Der Knoten, bei dem die Request-Nachricht ankommt, überprüft, ob der gesuchte
+Hash vorhanden ist. Sollte die Datei gefunden werden, sendet der Knoten
+die Datei zurück. Sollte der gesuchte Schlüssel nicht vorhanden sein, wird
+der nächste Knoten aus der Routingtabelle genommen, um die Request-Nachricht
+weiterzuleiten. Dabei wird die hops-to-live-Zahl um eins verringert. Dieser
+Vorgang wiederholt sich so lange, bis der hops-to-live-Wert auf null fällt.
+Kann ein Knoten einen Request nicht mehr weiterleiten, wird der vorherige
+Knoten benachrichtigt. Dieser sucht sich einen neuen Knoten aus der
+Routingtabelle und versendet den Request neu. Sollte der hops-to-live-Wert auf
+null fallen und es wurde keine Datei mit dem Schlüssel gefunden, wird eine
+Fehlernachricht bis zum Anfang der Kette weitergeleitet.
+Wird die Datei gefunden, wird dieser Hash in allen Knoten eingetragen, die
+Bestandteil der Request-Kette waren.
+
+\subsubsection{Daten verteilen}
+Verteilen von Daten ist ähnlich wie das Empfangen von Daten. Der Nutzer
+berechnet den Hashwert für die Datei und versendet diese an den eigenen Knoten.
+Dieser überpüft, ob der Hashwert schon vorhanden ist. Sollte das der Fall sein,
+kommt es zur Kollision und der Nutzer muss einen neuen Schlüssel berechnen.
+Sollte der Schlüssel nicht vorhanden sein, leitet der Knoten den Request
+weiter, bis der hop-to-live-Wert aufgebraucht ist oder die Datei gefunden
+wurde. Sollte die Datei gefunden werden, kommt es wieder zur Kollision und die
+Fehlernachricht wird bis zum Initialknoten durchgereicht, der dann wieder einen
+neuen Schlüssel berechnen muss. Sollte die Datei nicht gefunden werden, wird
+die Datei in allen Knoten eingefügt, die an der Request-Kette beteiligt waren.
+Sollte ein Knoten keinen Speicherplatz für die neue Datei verfügbar haben,
+wird die am wenigsten aufgerufene Datei ersetzt. Freenet garantiert somit keine
+permanente Persistierung von Daten sicher.
+
+\subsubsection{Daten verwalten}
+Der Speicher eines Knotens wird als LRU (Last Recent Used) cache verwaltet.
+Die Dateien sind nach letzt genutzt sortiert. Kommt beim Knoten eine neue Datei
+zum speichern und der Speicher ist voll, wird die am wenigsten genutzte Datei
+vertrieben, bis wieder Speicherplatz vorhanden ist. Der Eintrag in der
+Routingtablle bleibt vorerst bestehen. Somit kann eine Kopie der Datei
+wieder beschafft werden, wenn genug Speicherplatz vorhanden ist. Sollte sich
+der Knoten mit weiteren neuen Dateien füllen, verschwindet auch der Eintrag
+in der Routingtabelle der entfernten Datei.
+
+Dateien im Freenet sind nicht permanent verfügbar. Sollten alle Knoten
+entscheiden die selbe Datei aus ihren Speicher zu vertreiben, ist die im
+kompletten Netzwerk nicht mehr verfügbar.
+
+Wird eine veraltete Datei weiterhin genutzt, bleibt sie solange im Speicher,
+wie sie auch abgefragt wird. Jede Datei ist im Freenet verschlüsselt und
+benötigt einen Schlüssel zum Entschlüsseln. Dieser Schlüssel ist völlig
+unabhängig von dem Content-Hash-Key.
+Ohne Schlüssel kennt der Betreiber den Inhalt der Datei nicht und ist somit
+rechtlich abgeschützt, da jedes Wissen vom Inhalt abgestritten werden kann.
+
+\subsection{Knoten hinzufügen}
+Ein neuer Knoten wählt zufälligen Seed und verschickt diesen als Nachricht über
+das Freenet-Netzwerk. In dieser Ankündigungsnachricht ist die Adresse und dem
+Hash des Seeds des neuen Knoten enthalten.
+
+Bei Einkunft einer Ankündigung eines neuen Knotens, generiert der Empfänger
+einen zufälligen Seed, XOR'ed diesen mit dem empfangenem Hash und hasht das
+Ergebnis um eine Verbindlichkeit herzustellen. Danach leitet der Empfänger
+Knoten den neuen Hash zu einem zufällig gewähltem Knoten aus seiner eigenen
+Routingtabelle. Dieser Prozess wiederholt sich bis der hops-to-live Wert von
+der Ankündigung des neuen Knoten aufgebraucht ist.
+Der letzte Knoten, der die Ankündigungsnachricht empfängt, generiert nur einen
+Seed.
+Nach Überprüfung der Vereinbarungen in den jeweiligen Knoten, fügt jeder Knoten
+in der Kette den neuen Knoten in seine Routingtabelle ein.

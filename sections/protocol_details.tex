@@ -1,0 +1,57 @@
+\section{Protokoll Details}
+Jede Nachricht im Freenet ist Paket-orientiert und beinhaltet selbst erklärende
+Nachrichten, sowie eine Transaktions-ID.
+Adressen von Knoten beinhalten eine Methode für den Transport und einen
+speziellen Identifikator wie zum Beispiel eine IP und eine Port-Nummer.
+
+\subsection{Transaktionen}
+Eine Transaktion beginnt mit einer Request-Handshake Nachricht von einem Knoten
+zum anderen. Ist der angefragte Knoten aktiv, antwortet dieser mit einer
+Reply-Nachricht und spezifiziert die Protokollversion, die der Knoten versteht.
+Handshakes bleiben mehrere Stunden bestehen, damit der Handshake zwischen den
+beiden selben beiden Knoten zu einem späteren Zeitpunkt ausgelassen werden
+kann.
+
+\subsection{Nachrichten}
+Alle Nachrichten im Freenet beinhalten einen zufällig generierten 64-Bit
+Transaktions-ID, eine hops-to-live Wert und einen Depth-Counter.
+Zu beachten ist, dass nicht garantiert ist, dass die Transaktions-ID eindeutig
+ist. Die daraus resultierenden Kollision sind bei einer limitiertem Anzahl von
+Knoten sehr gering. Der hops-to-live Wert wird immer vom Absender der Nachricht
+festgelegt und verringert sich bei jeden angekommen Knoten um eins. Der
+Depth-Counter erhöht um eins bei jedem Knoten.
+
+Um Daten zu empfangen, sendet der zu sendende Knoten eine Request-Data
+Nachricht mit einer Transaktions-ID, einem hops-to-live Wert, einem
+Depth-Counter und Schlüssel der Datei nach der gesucht wird.
+Der Empfängerknoten überprüft den Speicher nach der gesuchten Datei. Sollte
+die Datei nicht im Speicher des Knoten liegen, wird die Anfrage an einem Knoten
+aus der Routingtabelle weitergeleitet.
+
+Ist ein Request nach einer Datei erfolgreich, antwortet der angefragte Knoten mit
+einer Send-Data Nachricht. Beinhaltet in dieser ist die angefragte Datei und
+die Adresse des Knotens, welches diese Datei auslieferte.
+Ist ein Request nach einer Datei erfolglos und der hops-to-live Wert
+aufgebraucht, antwortet der entfernte Knoten mit Reply-NotFound.
+
+Um Dateien in Freenet einzufügen, sendet der Senderknoten eine Request-Insert
+Nachricht mit einer definierten Transaktions-ID, einem hop-to-live Wert,
+einem Depth-Counter und einem vorgeschlagen Schlüssel für die Datei. Der
+entfernte Knoten überprüft seinen Speicher nach dem gesuchtem Schlüssel. Sollte
+der Schlüssel nicht gefunden werden im Speicher, wird die Nachricht
+weitergeleitet.
+Führt die Request-Insert Nachricht zu einer Kollision, da es der
+vorgeschlagenen Schlüssel schon vergeben ist, sendet der entfernte Knoten
+entweder eine Send-Data Nachricht, mit der existierenden Datei als Inhalt, oder
+eine Reply-NotFound Nachricht. Die Reply-NotFound Nachricht wird gesendet, wenn
+die Datei nicht gefunden wurde, dennoch ein Eintrag in der Routingtabelle auf
+die Datei referenziert.
+Sollte es bei einer Nachricht zum Einfügen einer Datei zu keiner Kollision
+kommen und es sind keine weiteren Knoten vorhanden, bei einen hop-to-live Wert
+größer Null, antwortet der entfernte Knoten mit einer Request-Continue
+Nachricht. Diese Nachricht soll dazu dienen den Sender mitzuteilen, dass nicht
+die Anzahl der Knoten abgefragt werden konnte wie gewünscht.
+Sollte das Einfügen ohne Kollision enden, erhählt der Initialknoten eine
+Reply-Insert Nachricht, die dem Knoten mitteilt, dass die Datei unter diesem
+Schlüssel eingefügt werden kann, dann sendet der Knoten eine Send-Data
+Nachricht.

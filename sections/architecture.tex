@@ -1,0 +1,78 @@
+\section{Architektur}
+Ein Freenet-Netzwerk besteht aus Nutzer-Knoten, die ihren lokalen Speicher
+anderen Nutzern zur Verfügung stellen. Jeder Knoten hat einen direkten
+Nachbarn, von dem gelesen wird und einen direkten Nachbarn, zu dem Dateien
+verteilt werden. Des Weiteren verwaltet jeder Knoten eine dynamische
+Routingtabelle.  Jede Routingtabelle beinhaltet die Adressen von Knoten und
+deren Schlüssel.  Genutzt wird Freenet, um die eigene Speicherkapazität zu
+erhöhen und um ungenutztem Speicher zur Verfügung zu stellen.
+
+Anfragen für Schlüssel von Knoten zu Knoten erfolgen über eine Kette von
+Proxy-Requests, indem jeder Knoten entscheiden kann, an wen der nächste Request
+geht.  Dieses Verfahren ähnelt dem IP-Routing. Jede Route ändert sich abhängig
+vom angefragten Schlüssel.  Um die Privatsphäre der Knoten zu unterstützen,
+haben diese nur Informationen über den ummittelbaren Nachbarn (up- und
+downstream).
+
+Jeder Request erhält einen hops-to-live Wert, der sich bei jedem erreichten
+Knoten verringert. Dadurch werden Endlosschleifen vermieden.  Jeder Request
+enthält außerdem eine pseudo-unique Zufalls-ID, um Endlossschleifen zu
+verhindern. Jeder Request, der zum zweiten mal bei einem Knoten ankommt, fliegt
+raus. Es gibt keine Herarchie der Knoten. Alle Knoten sind gleichgestellt im
+Freenet.
+
+\subsection{Schlüssel} Dateien im Freenet werden mit einem 160 Bit SHA-1
+Schlüssel dargestellt.  Freenet hat 3 verschiedene Schlüssel, die einen
+bestimmten Teil einer Datei beschreiben.
+
+\subsubsection{Keyword-Signed Schlüssel} Der Keyword-Signed Schlüssel
+dient für die Beschreibung einer Datei im Freenet. Jeder Benutzer, der eine
+Datei anlegt, wählt einen Text zur Idenfizierung dieser Datei, wie z.B.
+\begin{lstlisting}
+text/philosophy/sun-trz/art-of-war
+\end{lstlisting}
+Aus diesem Text wird deterministisch ein public-private Schlüsselpaar
+generiert.  Der Public Schlüssel wird anschließend gehasht, um den
+Dateischlüssel zu erhalten, der dann mit dem privaten Schlüssel signiert wird.
+Der Dateischlüssel ist der Schlüssel, mit der die Datei dargestellt wird.
+Dieser Schlüssel kann mit dem gewählten Text erneut berechnet und gesucht
+werden. Um anderen Nutzern den Zugriff auf die Datei zu gewähren, verschickt
+der Autor der Datei den beschreibenden String. Keyword-Signed Schlüssels sind
+so leicht zu merken. Ein Problem bei dem Keyword-Signed Schlüssel ist der
+geringe Namespace, welcher dazu frühren kann, das unterschiedliche Dateien die
+selbe Bezeichnung und dadurch den selben Dateischlüssel erhalten. Um das
+Problem mit der Namenskollidierung zu umgehen dient der Signed-Subspace
+Schlüssel.
+
+\subsubsection{Signed-Subspace Schlüssel}
+Der Signed-Subspace Schlüssel ist eine Erweiterung des Keyword-Signed
+Schlüssel. Der Schlüsselt erweitert den Namespace und reduziert Kollisionen, wo
+zwei verschieden Dateien den selben Schlüssel erhalten können.  Ein zufällig
+gewähltes asymmetrisches Schlüsselpaar stellt den Namespace dar.  Um eine Datei
+hinzuzufügen, wählt der Nutzer einen beschreibenden Text. Der public
+Signed-Subspace Schlüssel und der beschreibende Text werden unabhängig
+voneinander gehasht, anschließend miteinander geXOR't und dann wieder gehasht.
+
+\subsubsection{Content-Hash Schlüssel}
+Der Content-Hash Schlüssel repräsentiert den Inhalt der Datei in Form eines
+Hashes. Jede Datei erhält dadurch einen pseudo-einzigartigen Schlüssel.
+Zusätzlich wird eine Datei mit einem zufällig generierten Schlüssel
+verschlüsselt.  Um Zugriff auf die Datei zu ermöglichen, veröffentlicht der
+Nutzer den Content-Hash Schlüssel und den dazu gehörigen Schlüssel zur
+Entschlüsselung.
+
+Eine Datei kann kann mit dem Content-Hash Schlüssel durch den Autor
+aktualisiert werden. Dazu wird ein neuer Content-Hash Schlüssel erzeugt und
+unter dem Signed-Subspace Schlüssel abgelegt. Der neue Schlüssel muss sich vom
+alten unterscheiden. Sollte die neue Datei einen Knoten erreichen, der noch auf
+die alte Version verweist, ensteht eine Kollision, die dazu führt, dass der
+Knoten die Signatur der neuen Version überprüft, mit der alten Version
+validiert und auf die neue Version verweist. Der Signed-Subspace Schlüssel
+verweist immer auf die aktuellste Version der Datei. Die alte Version kann
+weiterhin erreicht werden, indem direkt der Content-Hash Schlüssel der älteren
+Version angefragt wird. Wird die ältere Version über einen bestimmten Zeitraum
+nicht mehr aufgerufen, kann diese vom Freenet entfernt werden.
+
+Eine weitere Funktion vom Content-Hash Schlüssel ist das Aufteilen einer Datei
+in mehrere Teildateien, um z.B. große Daten mit weniger Bandbreite über das
+Netzwerk zu verschicken.

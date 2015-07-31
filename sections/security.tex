@@ -1,0 +1,70 @@
+\section{Sicherheit}
+Freenet hat das Ziel die Anonymität der Autoren und Leser von Dateien zu
+schützen. Selbst die Dateien müssen im Freenet vor feindlichen Modifikationen
+geschützt werden und das Freenet-System muss resistent gegen DOS-Angriffen
+sein.
+
+Freenet stützt sich auf drei wesentliche Aspekte, die aus der Ausarbeitung
+von Reiter und Rubin stammen \cite{reiterandrubin}. Der erste Aspekt ist der
+Punkt der Anonymität. Es soll nicht ermittelt werden können wer eine Nachricht
+im Netz abgeschickt hat oder an wem diese Nachricht verschickt wurde.
+Der Aspekt ist die Erkennung von potentiellen Feinden im Freenet. Zu den
+potenziellen Angreifern gehören, lokale Lauscher, bösartige Knoten oder eine
+Zusammenarbeit von bösartigen Knoten. Die dritte Achse ist der Grad der
+Anonymität.
+
+\subsection{Schlüssel}
+Im Freenet können die angefragten Schlüssel nicht versteckt werden, da
+sie ein Bestandteil des Routingmechanismuses sind und jede Routing-Tabelle auf
+die Schlüssel angewiesen ist. Dadurch ist eine Anonymität der Schlüssel nicht
+gewährleistet. Der Nutzen von Hashes als Schlüssel stellt dennoch eine hohe
+Unklarheit gegen gelegentlichen Mithörern auf.
+Gegen Wörterbuchangriffen bleibt sind die Schlüssel dennoch anfällig.
+
+\subsection{Anonymität}
+Die Anonymität von Sender-Knoten in einem Bund aus böswilligen Knoten wird
+gewährleistet, da ein Knoten der eine Nachricht erhält, nicht bestimmen kann
+ob der Vorgänger die Nachricht initialisierte oder einfach nur
+weiterleitete. Durch das zufällige Setzen des Depth-Counters wird das
+Zurückverfolgen von Requests drastisch erschwert.
+
+Es gibt keinen Schutz gegenüber lokalen Mithörern, die Nachrichten vom Nutzer
+bis zum ersten Knoten beobachten. Solange der erste Knoten ein mithörender
+Knoten sein könnte, wird es empfohlen, dass den ersten Knoten für
+den Einstieg ins Freenet von der eigenen Maschine zu wählen. Nachrichten
+zwischen Knoten sind verschlüsselt und können nicht mehr abgehört werden. Die
+einzige Beobachtung bleibt der Ausgang einer Nachricht den Eingang einer
+Anfrage, was dazu schließen lass kann, das der Knoten der Absender sein könnte.
+
+\subsection{Datenquellen}
+Datenquellen können geschützt werden indem die Felder der Datenquellen
+regelmäßig zurückgesetzt werden.  Im Freenet ist es nicht möglich die Quelle
+einer Datei zu ermitteln. Liefert der Downstream-Knoten eine Datei, kann diese
+von dem Knoten selbst stammen oder von einem anderen Knoten, die an den
+Downstream-Knoten gesendet wurde.
+
+\subsection{Daten Manipulation}
+Daten, die unter den Content-Hash oder den Signed-Subspace Schlüsseln
+gespeichert werden können nicht manipuliert werden, da unechte Dateien im
+Freenet nachgewiesen werden können. Die einzige Möglichkeit den Inhalt einer
+Datei zu manipulieren besteht, wenn der Angreifer eine Kollision verursacht und
+die Signatur fälschen könnte. Unter den Keyword-Signed Schlüssel gespeicherte
+Dateien sind anfällig gegen Wörterbuchangriffe.
+
+\subsection{Denial Of Service}
+Weitere Angriffe sind die Denial-Of-Service Attacken. Ein Angreifer könnten
+versuchen mit einer hohen Anzahl an Abfalldateien das Freenet-Netzwerk zu
+fluten. Eine möglicher Konter ist es den Nutzer lange Berechnung vor der
+Einfügung durchzuführen zu lassen. Damit würde das Netzwerk entlastet werden.
+Ein weiter Methode ist die Aufteilung des Speicher in zwei Segmente.
+Ein Speicher dient für neue Dateien und ein Speicher für Dateien, die eine
+gewisse Anzahl an Anfragen aufweisen. Mit dieser Methode würden die neuen Datein
+nur neue Dateien ersetzen können. Dadurch würden keine Berechnung auf die
+etablierten Dateien ausgeführt werden. Die Fluten wird dadurch gestoppt, dass
+wenn ein Knoten eine Anfrage versendet, die vom ersten Knoten schon gestoppt
+wird, da der Knoten die Datei beinhalten. Eine Verbreitung über das Netzwerk
+ist dadurch verhindert.
+
+Ein Ziel von Angreifern kann es sein existieren Dateien im Freenet zu ersetzen.
+Wie bei den DOS-Attacken ist ein Angriff auf die Content-Hash oder
+Signed-Subspace Schlüssel nicht möglich.
